@@ -22,9 +22,6 @@ app.use((req, res, next) => {
 });
 
 const accommodationSchema = new mongoose.Schema({
-  _id: {
-    type: mongoose.Schema.Types.ObjectId, 
-  },
   userId: {
     type: String,
     required: true
@@ -74,9 +71,6 @@ const Accommodation = mongoose.model('Accommodation', accommodationSchema);
 
 
 const roomSchema = new mongoose.Schema({
-   _id: {
-    type: mongoose.Schema.Types.ObjectId, 
-  },
   hotel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "accommodations",
@@ -181,6 +175,7 @@ app.get('/places', verifyToken, async (req, res) => {
   }
 });
 
+
 app.get('/places/:id', verifyToken, async (req, res) => {
   try {
     console.log('Fetching rooms for user:', req.user.username);
@@ -226,6 +221,79 @@ app.get('/rooms/:id', verifyToken, async (req, res) => {
   }   
 }     
 );  
+
+app.post('/addhotels', verifyToken, async (req, res) => {
+  try {
+    const hotelData = {
+      ...req.body,
+      userId:req.user.username // Use username if userId not available
+    };
+    
+    console.log('Adding hotel for user:', hotelData.userId);
+    
+    const newHotel = new Accommodation(hotelData);
+    await newHotel.save();
+    
+    console.log('Hotel added successfully:', newHotel);
+    res.status(201).json(newHotel);
+  } catch (err) {
+    console.error('Error adding hotel:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+);
+
+app.post('/addrooms', verifyToken, async (req, res) => {
+  try {
+    const roomData = {
+      ...req.body
+    };
+
+    const newRoom = new Room(roomData);
+    await newRoom.save();
+
+    console.log('Room added successfully:', newRoom);
+    res.status(201).json(newRoom);  
+
+  } catch (err) {
+    console.error('Error adding room:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/updatehotel/:id', verifyToken, async (req, res) => {
+  try { 
+    const hotelId = req.params.id;
+    const updateData = req.body;
+    const updatedhotel = await Accommodation.findByIdAndUpdate(hotelId, updateData, { new: true });
+    if (!updatedhotel) {
+      return res.status(404).json({ error: 'hotel not found' });
+    }
+    console.log('hotel updated successfully:', updatedhotel);
+    res.status(200).json(updatedhotel);           
+    } catch (err) {
+    console.error('Error updating vehicle:', err);
+    res.status(500).json({ error: 'Internal server error' });   
+    }   
+});
+
+app.put('/updateroom/:id', verifyToken, async (req, res) => {
+  try{
+    const roomid=req.params.id;
+    const updateroom=req.body;
+    const updatedroom=await Room.findByIdAndUpdate(roomid,updateroom,{new:true});
+    if(!updatedroom){
+        return res.status(401).json({error:'Room not found'});              
+    }
+    console.log("room updated successfully:", updatedroom);
+    res.status(200).json(updatedroom);
+  } catch (err) {
+    console.error('Error updating room:', err);
+    res.status(500).json({error: 'Internal server error' });  
+  }
+}
+);
 
 
 
