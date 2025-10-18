@@ -34,6 +34,68 @@ const accommodationSchema = new mongoose.Schema({
     type: String,
     default: '11:00'
   },
+<<<<<<< HEAD
+=======
+  price: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  images: {
+    type: [String],
+    default: ['/placeholder-hotel.jpg']
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
+  },
+  amenities: {
+    type: [String],
+    default: []
+  },
+  roomTypes: {
+    type: [{
+      name: String,
+      size: String,
+      occupancy: Number,
+      price: Number
+    }],
+    default: []
+  },
+  reviews: {
+    type: Number,
+    default: 0
+  },
+  nearbyAttractions: {
+    type: [{
+      name: String,
+      type: String,
+      distance: String
+    }],
+    default: []
+  },
+  policies: {
+    type: [String],
+    default: []
+  },
+  userReviews: {
+    type: [{
+      name: String,
+      profileImage: String,
+      rating: Number,
+      review: String,
+      date: String,
+      helpful: Number
+    }],
+    default: []
+  },
+>>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
   status: {
     type: String,
     enum: ['active', 'inactive'],

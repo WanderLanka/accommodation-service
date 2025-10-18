@@ -70,9 +70,74 @@ const updateAccommodation = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// PUBLIC ENDPOINTS - for normal users browsing accommodations
+
+// Get all accommodations for public browsing (no authentication required)
+const getAllAccommodationsPublic = async (req, res) => {
+  try {
+    console.log('Fetching all accommodations for public listing');
+    
+    // Get all accommodations without user filtering for public display
+    const accommodations = await Accommodation.find({});
+    
+    console.log('Found accommodations:', accommodations.length);
+    res.status(200).json({ 
+      success: true,
+      data: accommodations,
+      count: accommodations.length 
+    });
+  } catch (err) {
+    console.error('Error fetching accommodations:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to fetch accommodations'
+    });
+  }
+};
+
+// Get accommodation by ID for public viewing (no authentication required)
+const getAccommodationByIdPublic = async (req, res) => {
+  try {
+    const accommodationId = req.params.id;
+    console.log('Fetching accommodation by ID:', accommodationId);
+    
+    const accommodation = await Accommodation.findById(accommodationId);
+    
+    if (!accommodation) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Accommodation not found' 
+      });
+    }
+    
+    console.log('Found accommodation:', accommodation.name);
+    res.status(200).json({ 
+      success: true,
+      data: accommodation 
+    });
+  } catch (err) {
+    console.error('Error fetching accommodation:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to fetch accommodation'
+    });
+  }
+};
+
+>>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
 module.exports = {
   getAccommodations,
   getAccommodationById,
   addAccommodation,
+<<<<<<< HEAD
   updateAccommodation
+=======
+  updateAccommodation,
+  getAllAccommodationsPublic,
+  getAccommodationByIdPublic
+>>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
 };

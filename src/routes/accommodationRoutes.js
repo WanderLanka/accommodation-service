@@ -5,9 +5,34 @@ const {
   getAccommodations,
   getAccommodationById,
   addAccommodation,
+<<<<<<< HEAD
   updateAccommodation
 } = require('../controllers/accommodationController');
 
+=======
+  updateAccommodation,
+  getAllAccommodationsPublic,
+  getAccommodationByIdPublic
+} = require('../controllers/accommodationController');
+
+// Add a debug log to check what route is being received
+router.use((req, res, next) => {
+  console.log(`🔍 Accommodation Service received request: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// PUBLIC ENDPOINTS (for normal users browsing)
+// Get all accommodations for public browsing
+router.get('/accommodations', getAllAccommodationsPublic);
+
+// Alternative route that might be received from proxy
+router.get('/api/accommodation/accommodations', getAllAccommodationsPublic);
+
+// Get specific accommodation by ID for public viewing
+router.get('/accommodations/:id', getAccommodationByIdPublic);
+
+// PROVIDER ENDPOINTS (for accommodation providers - authenticated)
+>>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
 // Get all accommodations for authenticated user
 router.get('/places', verifyToken, getAccommodations);
 
