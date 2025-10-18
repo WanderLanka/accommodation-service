@@ -20,9 +20,11 @@ const getAccommodations = async (req, res) => {
 const getAccommodationById = async (req, res) => {
   try {
     const hotelId = req.params.id;
-    const hotel = await Accommodation.find({ _id: hotelId });
-
-    console.log('Found hotel:', hotel.length);
+    const hotel = await Accommodation.findById(hotelId);
+    if (!hotel) {
+      return res.status(404).json({ error: 'Hotel not found' });
+    }
+    console.log('Found hotel:', hotel.name);
     res.status(200).json(hotel);
   } catch (err) {
     console.error('Error fetching hotel:', err);
@@ -37,6 +39,35 @@ const addAccommodation = async (req, res) => {
       ...req.body,
       userId: req.user.username
     };
+
+    // Normalize coordinates if provided as strings
+    if (hotelData.coordinates) {
+      const { lat, lng } = hotelData.coordinates;
+      hotelData.coordinates = {
+        lat: typeof lat === 'string' ? parseFloat(lat) : lat,
+        lng: typeof lng === 'string' ? parseFloat(lng) : lng
+      };
+    }
+
+    // Normalize roomTypes (ensure numbers, enforce availableRooms <= totalRooms)
+    if (Array.isArray(hotelData.roomTypes)) {
+      hotelData.roomTypes = hotelData.roomTypes.map((rt) => {
+        const totalRooms = typeof rt.totalRooms === 'string' ? parseInt(rt.totalRooms) : rt.totalRooms;
+        let availableRooms = typeof rt.availableRooms === 'string' ? parseInt(rt.availableRooms) : rt.availableRooms;
+        const pricePerNight = typeof rt.pricePerNight === 'string' ? parseFloat(rt.pricePerNight) : rt.pricePerNight;
+        const occupancy = typeof rt.occupancy === 'string' ? parseInt(rt.occupancy) : rt.occupancy;
+        const safeTotal = Number.isFinite(totalRooms) ? totalRooms : 0;
+        const safeAvailable = Number.isFinite(availableRooms) ? Math.min(availableRooms, safeTotal) : safeTotal;
+        return {
+          type: rt.type,
+          pricePerNight,
+          totalRooms: safeTotal,
+          availableRooms: safeAvailable,
+          size: rt.size,
+          occupancy: Number.isFinite(occupancy) ? occupancy : undefined
+        };
+      });
+    }
     
     console.log('Adding hotel for user:', hotelData.userId);
     
@@ -56,6 +87,32 @@ const updateAccommodation = async (req, res) => {
   try {
     const hotelId = req.params.id;
     const updateData = req.body;
+    if (updateData.coordinates) {
+      const { lat, lng } = updateData.coordinates;
+      updateData.coordinates = {
+        lat: typeof lat === 'string' ? parseFloat(lat) : lat,
+        lng: typeof lng === 'string' ? parseFloat(lng) : lng
+      };
+    }
+
+    if (Array.isArray(updateData.roomTypes)) {
+      updateData.roomTypes = updateData.roomTypes.map((rt) => {
+        const totalRooms = typeof rt.totalRooms === 'string' ? parseInt(rt.totalRooms) : rt.totalRooms;
+        let availableRooms = typeof rt.availableRooms === 'string' ? parseInt(rt.availableRooms) : rt.availableRooms;
+        const pricePerNight = typeof rt.pricePerNight === 'string' ? parseFloat(rt.pricePerNight) : rt.pricePerNight;
+        const occupancy = typeof rt.occupancy === 'string' ? parseInt(rt.occupancy) : rt.occupancy;
+        const safeTotal = Number.isFinite(totalRooms) ? totalRooms : 0;
+        const safeAvailable = Number.isFinite(availableRooms) ? Math.min(availableRooms, safeTotal) : safeTotal;
+        return {
+          type: rt.type,
+          pricePerNight,
+          totalRooms: safeTotal,
+          availableRooms: safeAvailable,
+          size: rt.size,
+          occupancy: Number.isFinite(occupancy) ? occupancy : undefined
+        };
+      });
+    }
     const updatedHotel = await Accommodation.findByIdAndUpdate(hotelId, updateData, { new: true });
     
     if (!updatedHotel) {
@@ -70,8 +127,7 @@ const updateAccommodation = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
+
 // PUBLIC ENDPOINTS - for normal users browsing accommodations
 
 // Get all accommodations for public browsing (no authentication required)
@@ -128,16 +184,14 @@ const getAccommodationByIdPublic = async (req, res) => {
   }
 };
 
->>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
+ 
 module.exports = {
   getAccommodations,
   getAccommodationById,
   addAccommodation,
-<<<<<<< HEAD
-  updateAccommodation
-=======
+
   updateAccommodation,
   getAllAccommodationsPublic,
   getAccommodationByIdPublic
->>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
+
 };

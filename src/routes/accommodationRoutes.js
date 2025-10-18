@@ -5,11 +5,6 @@ const {
   getAccommodations,
   getAccommodationById,
   addAccommodation,
-<<<<<<< HEAD
-  updateAccommodation
-} = require('../controllers/accommodationController');
-
-=======
   updateAccommodation,
   getAllAccommodationsPublic,
   getAccommodationByIdPublic
@@ -30,14 +25,19 @@ router.get('/api/accommodation/accommodations', getAllAccommodationsPublic);
 
 // Get specific accommodation by ID for public viewing
 router.get('/accommodations/:id', getAccommodationByIdPublic);
+// Alias to support requests forwarded by API Gateway or other clients that keep the prefix
+router.get('/api/accommodation/accommodations/:id', getAccommodationByIdPublic);
 
 // PROVIDER ENDPOINTS (for accommodation providers - authenticated)
->>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
 // Get all accommodations for authenticated user
 router.get('/places', verifyToken, getAccommodations);
+// Alias for requests arriving as /api/accommodation/places
+router.get('/api/accommodation/places', verifyToken, getAccommodations);
 
 // Get specific accommodation by ID
 router.get('/hotel/:id', verifyToken, getAccommodationById);
+// Alias for provider-specific hotel details when proxy keeps the /api/accommodation prefix
+router.get('/api/accommodation/hotel/:id', verifyToken, getAccommodationById);
 
 // Add new accommodation
 router.post('/addhotels', verifyToken, addAccommodation);

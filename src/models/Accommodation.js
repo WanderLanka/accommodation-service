@@ -13,6 +13,11 @@ const accommodationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Geographic coordinates of the accommodation (latitude/longitude)
+  coordinates: {
+    lat: { type: Number, required: false },
+    lng: { type: Number, required: false }
+  },
   accommodationType: {
     type: String,
     required: true,
@@ -34,8 +39,6 @@ const accommodationSchema = new mongoose.Schema({
     type: String,
     default: '11:00'
   },
-<<<<<<< HEAD
-=======
   price: {
     type: Number,
     required: true,
@@ -59,12 +62,16 @@ const accommodationSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  // Detailed room type breakdown with pricing and availability
   roomTypes: {
     type: [{
-      name: String,
-      size: String,
-      occupancy: Number,
-      price: Number
+      type: { type: String, enum: ['luxury', 'deluxe', 'normal'], required: true },
+      pricePerNight: { type: Number, required: true },
+      totalRooms: { type: Number, required: true, min: 0 },
+      availableRooms: { type: Number, required: true, min: 0 },
+      // Optional descriptive fields
+      size: { type: String },
+      occupancy: { type: Number }
     }],
     default: []
   },
@@ -95,7 +102,7 @@ const accommodationSchema = new mongoose.Schema({
     }],
     default: []
   },
->>>>>>> 463b46609a0c49a9e8b3420ee62788956f6417d6
+
   status: {
     type: String,
     enum: ['active', 'inactive'],
