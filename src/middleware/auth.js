@@ -22,3 +22,12 @@ const verifyToken = (req, res, next) => {
 };
 
 module.exports = { verifyToken };
+ 
+// Admin-only guard
+const requireAdmin = (req, res, next) => {
+  const userRole = req.user?.role;
+  if (userRole === 'admin' || userRole === 'superadmin' || userRole === 'Sysadmin') return next();
+  return res.status(403).json({ error: 'Admin privileges required' });
+};
+
+module.exports.requireAdmin = requireAdmin;

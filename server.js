@@ -6,6 +6,7 @@ const config = require('./src/config/config');
 // Import routes
 const accommodationRoutes = require('./src/routes/accommodationRoutes');
 const roomRoutes = require('./src/routes/roomRoutes');
+const complaintRoutes = require('./src/routes/complaintRoutes');
 
 const app = express();
 
@@ -15,6 +16,7 @@ setupMiddleware(app);
 // Routes
 app.use('/', accommodationRoutes);
 app.use('/', roomRoutes);
+app.use('/', complaintRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
