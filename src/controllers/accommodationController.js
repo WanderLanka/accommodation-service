@@ -20,11 +20,9 @@ const getAccommodations = async (req, res) => {
 const getAccommodationById = async (req, res) => {
   try {
     const hotelId = req.params.id;
-    const hotel = await Accommodation.findById(hotelId);
-    if (!hotel) {
-      return res.status(404).json({ error: 'Hotel not found' });
-    }
-    console.log('Found hotel:', hotel.name);
+    const hotel = await Accommodation.find({ _id: hotelId });
+
+    console.log('Found hotel:', hotel.length);
     res.status(200).json(hotel);
   } catch (err) {
     console.error('Error fetching hotel:', err);
@@ -39,7 +37,6 @@ const addAccommodation = async (req, res) => {
       ...req.body,
       userId: req.user.username
     };
-
     // Normalize coordinates if provided as strings
     if (hotelData.coordinates) {
       const { lat, lng } = hotelData.coordinates;
@@ -87,6 +84,7 @@ const updateAccommodation = async (req, res) => {
   try {
     const hotelId = req.params.id;
     const updateData = req.body;
+
     if (updateData.coordinates) {
       const { lat, lng } = updateData.coordinates;
       updateData.coordinates = {
@@ -126,8 +124,6 @@ const updateAccommodation = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-
 // PUBLIC ENDPOINTS - for normal users browsing accommodations
 
 // Get all accommodations for public browsing (no authentication required)
@@ -184,12 +180,10 @@ const getAccommodationByIdPublic = async (req, res) => {
   }
 };
 
- 
 module.exports = {
   getAccommodations,
   getAccommodationById,
   addAccommodation,
-
   updateAccommodation,
   getAllAccommodationsPublic,
   getAccommodationByIdPublic
