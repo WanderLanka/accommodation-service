@@ -182,11 +182,53 @@ const getAccommodationByIdPublic = async (req, res) => {
   }
 };
 
+// Adjust room availability for embedded roomTypes
+async function adjustRoomAvailability(req, res, direction) {
+  try {
+    const hotelId = req.params.id;
+    const { adjustments } = req.body; // [{ type, quantity }]
+    if (!Array.isArray(adjustments) || adjustments.length === 0) {
+      return res.status(400).json({ success: false, error: 'adjustments array is required' });
+    }
+    const hotel = await Accommodation.findById(hotelId);
+    if (!hotel) return res.status(404).json({ success: false, error: 'Accommodation not found' });
+
+    const typeToQty = new Map(adjustments.map(a => [a.type, parseInt(a.quantity) || 0]));
+    hotel.roomTypes = (hotel.roomTypes || []).map(rt => {
+      if (!typeToQty.has(rt.type)) return rt;
+      const q = typeToQty.get(rt.type);
+      if (direction === 'decrease') {
+        const next = Math.max(0, (rt.availableRooms || 0) - q);
+        return { ...rt.toObject?.() || rt, availableRooms: next };
+      }
+      if (direction === 'increase') {
+        const total = rt.totalRooms || 0;
+        const next = Math.min(total, (rt.availableRooms || 0) + q);
+        return { ...rt.toObject?.() || rt, availableRooms: next };
+      }
+      return rt;
+    });
+    await hotel.save();
+    return res.json({ success: true, data: hotel });
+  } catch (err) {
+    console.error('Room availability adjustment failed:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+}
+
+const decreaseRoomAvailability = (req, res) => adjustRoomAvailability(req, res, 'decrease');
+const increaseRoomAvailability = (req, res) => adjustRoomAvailability(req, res, 'increase');
+
+ 
 module.exports = {
   getAccommodations,
   getAccommodationById,
   addAccommodation,
   updateAccommodation,
   getAllAccommodationsPublic,
-  getAccommodationByIdPublic
+
+  getAccommodationByIdPublic,
+  decreaseRoomAvailability,
+  increaseRoomAvailability
+
 };

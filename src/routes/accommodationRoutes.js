@@ -7,7 +7,9 @@ const {
   addAccommodation,
   updateAccommodation,
   getAllAccommodationsPublic,
-  getAccommodationByIdPublic
+  getAccommodationByIdPublic,
+  decreaseRoomAvailability,
+  increaseRoomAvailability
 } = require('../controllers/accommodationController');
 
 // Add a debug log to check what route is being received
@@ -49,5 +51,11 @@ router.post('/addhotels', verifyToken, addAccommodation);
 
 // Update accommodation
 router.put('/updatehotel/:id', verifyToken, updateAccommodation);
+
+// Room availability adjustments (internal use by booking-service)
+// Decrease availableRooms for given room types and quantities
+router.put('/accommodations/:id/room-types/decrease', decreaseRoomAvailability);
+// Increase availableRooms (e.g., when booking ends)
+router.put('/accommodations/:id/room-types/increase', increaseRoomAvailability);
 
 module.exports = router;
