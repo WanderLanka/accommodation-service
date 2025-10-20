@@ -296,7 +296,111 @@ app.put('/updateroom/:id', verifyToken, async (req, res) => {
 );
 
 
+// Public endpoints for frontend (no authentication required)
+app.get('/accommodations', async (req, res) => {
+  try {
+    console.log('Fetching all accommodations for public listing');
+    
+    // Get all accommodations without user filtering for public display
+    const accommodations = await Accommodation.find({});
+    
+    console.log('Found accommodations:', accommodations.length);
+    res.status(200).json({ 
+      success: true,
+      data: accommodations,
+      count: accommodations.length 
+    });
+  } catch (err) {
+    console.error('Error fetching accommodations:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to fetch accommodations'
+    });
+  }
+});
 
+app.get('/accommodations/:id', async (req, res) => {
+  try {
+    const accommodationId = req.params.id;
+    console.log('Fetching accommodation by ID:', accommodationId);
+    
+    const accommodation = await Accommodation.findById(accommodationId);
+    
+    if (!accommodation) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Accommodation not found' 
+      });
+    }
+    
+    console.log('Found accommodation:', accommodation.name || accommodation._id);
+    res.status(200).json({ 
+      success: true,
+      data: accommodation 
+    });
+  } catch (err) {
+    console.error('Error fetching accommodation:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to fetch accommodation'
+    });
+  }
+});
+
+// Public endpoints for frontend (no authentication required)
+app.get('/accommodations', async (req, res) => {
+  try {
+    console.log('Fetching all accommodations for public listing');
+    
+    // Get all accommodations without user filtering for public display
+    const accommodations = await Accommodation.find({});
+    
+    console.log('Found accommodations:', accommodations.length);
+    res.status(200).json({ 
+      success: true,
+      data: accommodations,
+      count: accommodations.length 
+    });
+  } catch (err) {
+    console.error('Error fetching accommodations:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to fetch accommodations'
+    });
+  }
+});
+
+app.get('/accommodations/:id', async (req, res) => {
+  try {
+    const accommodationId = req.params.id;
+    console.log('Fetching accommodation by ID:', accommodationId);
+    
+    const accommodation = await Accommodation.findById(accommodationId);
+    
+    if (!accommodation) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Accommodation not found' 
+      });
+    }
+    
+    console.log('Found accommodation:', accommodation.name);
+    res.status(200).json({ 
+      success: true,
+      data: accommodation 
+    });
+  } catch (err) {
+    console.error('Error fetching accommodation:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to fetch accommodation'
+    });
+  }
+});
 
   }
 });

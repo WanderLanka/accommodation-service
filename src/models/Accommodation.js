@@ -18,6 +18,10 @@ const accommodationSchema = new mongoose.Schema({
     lat: { type: Number, required: false },
     lng: { type: Number, required: false }
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
   accommodationType: {
     type: String,
     required: true,
