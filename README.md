@@ -1,6 +1,6 @@
 # Accommodation Service
 
-A microservice for managing accommodations (hotels, resorts, guesthouses, homestays) and rooms in the WanderLanka travel platform.
+A microservice for managing accommodations (hotels, resorts, guesthouses, homestays) and rooms in the WanderLanka platform. It exposes public browsing endpoints and authenticated provider endpoints, and integrates with booking flows for room availability updates.
 
 ## Project Structure
 
@@ -31,28 +31,46 @@ accommodation-service/
 
 ## Features
 
-- **Accommodation Management**: Create, read, update accommodations
-- **Room Management**: Manage rooms within accommodations
-- **JWT Authentication**: Secure endpoints with token verification
-- **MongoDB Integration**: Persistent data storage
-- **RESTful API**: Clean and consistent API design
+- **Public Browsing**: List and view accommodations without auth
+- **Provider Management**: Create/read/update accommodations and rooms (JWT-protected)
+- **Room Availability**: Endpoints to decrease/increase availability for booking flows
+- **JWT Authentication**: Secure provider endpoints with token verification
+- **MongoDB Integration**: Persistent data storage via Mongoose
+- **Gateway Compatibility**: Accepts both direct and `/api/accommodation/*`-prefixed paths
 
 ## API Endpoints
 
-### Accommodations
-- `GET /places` - Get all accommodations for authenticated user
-- `GET /hotel/:id` - Get specific accommodation by ID
-- `POST /addhotels` - Add new accommodation
-- `PUT /updatehotel/:id` - Update accommodation
+Note: When accessed via the API Gateway, routes may be forwarded with the prefix `/api/accommodation/*`. Aliases are provided for compatibility.
 
-### Rooms
-- `GET /places/:id` - Get rooms by hotel ID
-- `GET /rooms/:id` - Get specific room by ID
-- `POST /addrooms` - Add new room
-- `PUT /updateroom/:id` - Update room
+### Public (no auth)
+- `GET /accommodations` — List all accommodations (public)
+- `GET /accommodations/:id` — Get accommodation by ID (public)
+- Aliases:
+   - `GET /api/accommodation/accommodations`
+   - `GET /api/accommodation/accommodations/:id`
 
-### Health
-- `GET /health` - Service health check
+### Provider (authenticated)
+- `GET /places` — List accommodations for the authenticated provider
+- `GET /hotel/:id` — Get provider-specific accommodation details
+- `POST /addhotels` — Create a new accommodation
+- `PUT /updatehotel/:id` — Update an accommodation
+- Aliases:
+   - `GET /api/accommodation/places`
+   - `GET /api/accommodation/hotel/:id`
+
+### Rooms (authenticated)
+- `GET /places/:id` — List rooms by accommodation ID
+- `GET /rooms/:id` — Get room by ID
+- `POST /addrooms` — Create a room
+- `PUT /updateroom/:id` — Update a room
+
+### Availability (internal to booking flows)
+- `PUT /accommodations/:id/room-types/decrease` — Decrease available rooms for given types/quantities
+- `PUT /accommodations/:id/room-types/increase` — Increase available rooms (e.g., when booking ends)
+
+### Health & Test
+- `GET /health` — Service health check
+- `GET /test` — Simple test route for connectivity
 
 ## Environment Variables
 
@@ -64,6 +82,7 @@ MONGO_URI=mongodb://localhost:27017/test
 JWT_SECRET=your-jwt-secret-key
 CORS_ORIGIN=http://localhost:5173
 NODE_ENV=development
+HOST=0.0.0.0
 ```
 
 ## Installation & Usage
@@ -115,13 +134,41 @@ NODE_ENV=development
 ## Integration
 
 This service integrates with:
-- **API Gateway**: Receives requests via proxy from `/api/accommodation/*`
-- **Auth Service**: Validates JWT tokens for user authentication
-- **Frontend**: Provides accommodation data for booking interfaces
+- **API Gateway**: Proxies requests under `/api/accommodation/*` to this service (path aliases supported)
+- **Auth Service**: Validates JWT tokens for provider endpoints (`Authorization: Bearer <token>`)
+- **Booking Service**: Calls availability endpoints to adjust room counts during booking lifecycle
+- **Frontend**: Provides accommodation data for browsing and provider management
 
 ## Development Notes
 
-- All routes except `/health` require JWT authentication
-- User identification is done via `req.user.username` from decoded JWT
-- CORS is configured for frontend integration
-- MongoDB connection uses the 'test' database by default
+- Public browsing endpoints do NOT require JWT; provider and rooms endpoints DO.
+- CORS is configurable via `CORS_ORIGIN`.
+- MongoDB connection string is set via `MONGO_URI`.
+- Debug logging prints incoming request details; unmatched routes return structured 404.
+
+## Docker (example)
+
+```dockerfile
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+
+FROM node:20-alpine
+ENV NODE_ENV=production
+USER node
+WORKDIR /app
+COPY --from=build /app /app
+EXPOSE 3003
+CMD ["node", "server.js"]
+```
+
+```bash
+docker build -t accommodation-service:local .
+docker run --rm -p 3003:3003 \
+   -e MONGO_URI=mongodb://host.docker.internal:27017/accommodation \
+   -e JWT_SECRET=your-secret \
+   -e CORS_ORIGIN=http://localhost:5173 \
+   accommodation-service:local
+```
