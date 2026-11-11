@@ -1,3 +1,4 @@
+const { requireInternal } = require('../../security');
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
@@ -49,8 +50,8 @@ router.put('/updatehotel/:id', verifyToken, updateAccommodation);
 
 // Room availability adjustments (internal use by booking-service)
 // Decrease availableRooms for given room types and quantities
-router.put('/accommodations/:id/room-types/decrease', decreaseRoomAvailability);
+router.put('/accommodations/:id/room-types/decrease', requireInternal, decreaseRoomAvailability);
 // Increase availableRooms (e.g., when booking ends)
-router.put('/accommodations/:id/room-types/increase', increaseRoomAvailability);
+router.put('/accommodations/:id/room-types/increase', requireInternal, increaseRoomAvailability);
 
 module.exports = router;

@@ -5,9 +5,9 @@ const Room = require('../models/Room');
 const getAccommodations = async (req, res) => {
   try {
     console.log('Fetching places for user:', req.user.username);
-    
+
     const places = await Accommodation.find({ userId: req.user.username });
-    
+
     console.log('Found places:', places.length);
     res.status(200).json(places);
   } catch (err) {
@@ -20,7 +20,7 @@ const getAccommodations = async (req, res) => {
 const getAccommodationById = async (req, res) => {
   try {
     const hotelId = req.params.id;
-    const hotel = await Accommodation.find({ _id: hotelId });
+    const hotel = await Accommodation.find({ _id: hotelId, userId: req.user.username });
 
     console.log('Found hotel:', hotel.length);
     res.status(200).json(hotel);
@@ -65,12 +65,12 @@ const addAccommodation = async (req, res) => {
         };
       });
     }
-    
+
     console.log('Adding hotel for user:', hotelData.userId);
-    
+
     const newHotel = new Accommodation(hotelData);
     await newHotel.save();
-    
+
     console.log('Hotel added successfully:', newHotel);
     res.status(201).json(newHotel);
   } catch (err) {
@@ -83,7 +83,7 @@ const addAccommodation = async (req, res) => {
 const updateAccommodation = async (req, res) => {
   try {
     const hotelId = req.params.id;
-    const updateData = req.body;
+    const updateData = Object.fromEntries(Object.entries(req.body).filter(([key]) => !['userId', '_id', 'hotel'].includes(key) && !key.startsWith('$') && !key.includes('.')));
 
     if (updateData.coordinates) {
       const { lat, lng } = updateData.coordinates;
@@ -111,12 +111,12 @@ const updateAccommodation = async (req, res) => {
         };
       });
     }
-    const updatedHotel = await Accommodation.findByIdAndUpdate(hotelId, updateData, { new: true });
-    
+    const updatedHotel = await Accommodation.findOneAndUpdate({ _id: hotelId, userId: req.user.username }, updateData, { new: true });
+
     if (!updatedHotel) {
       return res.status(404).json({ error: 'Hotel not found' });
     }
-    
+
     console.log('Hotel updated successfully:', updatedHotel);
     res.status(200).json(updatedHotel);
   } catch (err) {
@@ -130,19 +130,19 @@ const updateAccommodation = async (req, res) => {
 const getAllAccommodationsPublic = async (req, res) => {
   try {
     console.log('Fetching all accommodations for public listing');
-    
+
     // Get all accommodations without user filtering for public display
     const accommodations = await Accommodation.find({});
-    
+
     console.log('Found accommodations:', accommodations.length);
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
       data: accommodations,
-      count: accommodations.length 
+      count: accommodations.length
     });
   } catch (err) {
     console.error('Error fetching accommodations:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       error: 'Internal server error',
       message: 'Failed to fetch accommodations'
@@ -155,24 +155,24 @@ const getAccommodationByIdPublic = async (req, res) => {
   try {
     const accommodationId = req.params.id;
     console.log('Fetching accommodation by ID:', accommodationId);
-    
+
     const accommodation = await Accommodation.findById(accommodationId);
-    
+
     if (!accommodation) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: 'Accommodation not found' 
+        error: 'Accommodation not found'
       });
     }
-    
+
     console.log('Found accommodation:', accommodation.name);
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      data: accommodation 
+      data: accommodation
     });
   } catch (err) {
     console.error('Error fetching accommodation:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       error: 'Internal server error',
       message: 'Failed to fetch accommodation'
@@ -217,7 +217,7 @@ async function adjustRoomAvailability(req, res, direction) {
 const decreaseRoomAvailability = (req, res) => adjustRoomAvailability(req, res, 'decrease');
 const increaseRoomAvailability = (req, res) => adjustRoomAvailability(req, res, 'increase');
 
- 
+
 module.exports = {
   getAccommodations,
   getAccommodationById,

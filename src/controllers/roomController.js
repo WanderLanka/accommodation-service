@@ -4,7 +4,7 @@ const Room = require('../models/Room');
 const getRoomsByHotel = async (req, res) => {
   try {
     console.log('Fetching rooms for hotel:', req.params.id);
-    
+
     const hotelId = req.params.id;
     const rooms = await Room.find({ hotel: hotelId });
 
@@ -52,13 +52,13 @@ const addRoom = async (req, res) => {
 const updateRoom = async (req, res) => {
   try {
     const roomId = req.params.id;
-    const updateData = req.body;
+    const updateData = Object.fromEntries(Object.entries(req.body).filter(([key]) => !['_id', 'hotel'].includes(key) && !key.startsWith('$') && !key.includes('.')));
     const updatedRoom = await Room.findByIdAndUpdate(roomId, updateData, { new: true });
-    
+
     if (!updatedRoom) {
       return res.status(404).json({ error: 'Room not found' });
     }
-    
+
     console.log('Room updated successfully:', updatedRoom);
     res.status(200).json(updatedRoom);
   } catch (err) {

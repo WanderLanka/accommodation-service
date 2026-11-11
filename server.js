@@ -1,3 +1,4 @@
+const { start, installReadiness } = require('./runtime');
 const express = require('express');
 const connectDB = require('./src/config/database');
 const setupMiddleware = require('./src/config/middleware');
@@ -8,19 +9,11 @@ const accommodationRoutes = require('./src/routes/accommodationRoutes');
 const roomRoutes = require('./src/routes/roomRoutes');
 
 const app = express();
+installReadiness(app);
 
 // Setup middleware
 setupMiddleware(app);
 
-
-// Debug middleware to log all incoming requests
-app.use((req, res, next) => {
-  console.log(`🔍 Received ${req.method} request to: ${req.path}`);
-  console.log(`🔍 Full URL: ${req.url}`);
-  console.log(`🔍 Original URL: ${req.originalUrl}`);
-  console.log(`🔍 Headers:`, JSON.stringify(req.headers, null, 2));
-  next();
-});
 
 // Simple test route
 app.get('/test', (req, res) => {
@@ -52,19 +45,12 @@ app.use('*', (req, res) => {
     originalUrl: req.originalUrl
   });
 });
-// Start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    
-    app.listen(config.port, config.host, () => {
-      console.log(`🔐 Accommodation service running on ${config.host}:${config.port}`);
-      console.log(`📊 Health check: http://${config.host}:${config.port}/health`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
 
-startServer();
+if (require.main === module) {
+  start(app, { connect: connectDB, port: config.port }).catch(error => {
+    console.error('Service startup failed:', error.message);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = app;
