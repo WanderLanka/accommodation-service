@@ -40,3 +40,6 @@ coverage/
 
 # Uploaded files
 uploads/
+
+# Generated dependency copies and operating-system metadata
+node_modules*/
